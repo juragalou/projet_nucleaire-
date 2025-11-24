@@ -25,7 +25,6 @@ HL_DB = {
     # Plutonium
     ("Pu239", "Alpha"): 7.6e15,      # ~2.4e4 yr
     ("Pu240", "Alpha"): 2.0e15,      # ~6.6e3 yr
-    ("Pu241", "BetaMinus"): 4.5e8,   # ~14.3 years
 
     # Xenon-135
     ("Xe135", "BetaMinus"): 3.29e4,  # ~9.14 h
