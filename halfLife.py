@@ -1,77 +1,66 @@
-import numpy as np
+############################################################################### database of half-lives in seconds
+import math
+
+# half-lives database in seconds
+# (only what we really need; others are approximations)
+HL_DB = {
+    # Thorium
+    ("Th232", "Alpha"): 4.4e17,      # ~1.4e10 yr
+    ("Th233", "BetaMinus"): 5.0e3,   # ~1.4 h
+
+    # Protactinium
+    ("Pa233", "BetaMinus"): 9.9e4,   # ~27.4 h
+
+    # Uranium (mostly irrelevant on short times, but put something)
+    ("U233", "Alpha"): 5.2e12,       # ~1.6e5 yr
+    ("U235", "Alpha"): 2.2e16,       # ~7e8 yr
+    ("U236", "Alpha"): 7.4e14,       # ~2.3e7 yr
+    ("U237", "BetaMinus"): 2.2e3,    # ~38 min
+    ("U238", "Alpha"): 1.4e17,       # ~4.5e9 yr
+    ("U239", "BetaMinus"): 2.3e2,    # ~23 min
+
+    # Neptunium
+    ("Np239", "BetaMinus"): 8.4e4,   # ~2.35 d
+
+    # Plutonium
+    ("Pu239", "Alpha"): 7.6e15,      # ~2.4e4 yr
+    ("Pu240", "Alpha"): 2.0e15,      # ~6.6e3 yr
+
+    # Xenon-135
+    ("Xe135", "BetaMinus"): 3.29e4,  # ~9.14 h
+
+    # Fictitious fission product (delayed neutrons source)
+    ("FP", "BetaMinus"): 1.0,        # given: T1/2 ~ 1 s
+}
+
 
 def halfLife(X, Transfo):
     """
     Return the half life of a nuclide or nucleon for a specific transformation
-    Data available on http://wwwndc.jaea.go.jp/NuC/ (more precisely: http://wwwndc.jaea.go.jp/CN14/index.html)
+    Data available on http://wwwndc.jaea.go.jp/NuC/
 
     ----------------
     :param X: string
         nuclide or nucleon (for a neutron), that follows the atomic notation of the element,
-        i.e.: for the Uranium 235, X = 'U235'
+        i.e.: for Uranium-235, X = 'U235'
     :param Transfo: string
-        name of the considered transformation, should be one of the following in the list
+        name of the considered transformation, should be one of:
         ['Alpha', 'BetaMinus', 'BetaPlus', 'Gamma']
     :return: the half life of X for the transformation Transfo in seconds
     """
 
-    # ==================================  Check arguments  ==================================
-    #  Check that the nucleon/nuclide asked exists in our database
-    valid_nuclides = [
-        'Th232', 'Th233', 'Pa233', 'U233', 'U235', 'U236', 'U237', 'U238',
-        'U239', 'Np239', 'Pu239', 'Pu240', 'Xe135'
-    ]
-    if X not in valid_nuclides:
-        print('\n WARNING : There is no database for element ', X, '. \n Please check function information')
-
-    # Check whether the transformation exists or not
-    valid_transfo = ['Alpha', 'BetaMinus', 'BetaPlus', 'Gamma']
-    if Transfo not in valid_transfo:  # Gamma very short, usually neglected
-        print('\n WARNING : These transformations are not implemented :', Transfo, '.\n Please check function information')
-
-    # =============================  Internal half-life database  =============================
-    # Values are total half-lives for the dominant decay mode (in seconds).
-    # (Orders of grandeur based on nuclear data tables; sufficient for this simplified model.)
-
-    year = 365.25 * 24 * 3600
-    day  = 24 * 3600
-    hour = 3600
-    minute = 60
-
-    hl_database = {
-        # Thorium
-        'Th232': 1.4e9 * year,          # ~1.4×10^9 years, alpha :contentReference[oaicite:0]{index=0}
-        'Th233': 21.8 * minute,          # ~21.8 min, beta- to Pa-233 :contentReference[oaicite:1]{index=1}
-
-        # Protactinium
-        'Pa233': 26.97 * day,            # ~26.97 days, beta- to U-233 :contentReference[oaicite:2]{index=2}
-
-        # Uranium
-        'U233': 1.592e5 * year,          # ~1.59×10^5 years, alpha :contentReference[oaicite:3]{index=3}
-        'U235': 7.04e8 * year,           # ~7.04×10^8 years, alpha :contentReference[oaicite:4]{index=4}
-        'U236': 2.342e7 * year,          # ~2.34×10^7 years :contentReference[oaicite:5]{index=5}
-        'U237': 6.75 * day,              # ~6.75 days :contentReference[oaicite:6]{index=6}
-        'U238': 4.468e9 * year,          # ~4.47×10^9 years, alpha :contentReference[oaicite:7]{index=7}
-        'U239': 23.45 * minute,          # ~23.45 min, beta- to Np-239 :contentReference[oaicite:8]{index=8}
-
-        # Neptunium
-        'Np239': 2.3565 * day,           # ~2.3565 days, beta- to Pu-239 :contentReference[oaicite:9]{index=9}
-
-        # Plutonium
-        'Pu239': 2.411e4 * year,         # ~2.41×10^4 years, alpha :contentReference[oaicite:10]{index=10}
-        'Pu240': 6561 * year,            # ~6561 years, alpha :contentReference[oaicite:11]{index=11}
-
-        # Xenon
-        'Xe135': 9.14 * hour             # ~9.14 h, beta- to Cs-135 :contentReference[oaicite:12]{index=12}
-    }
-
-    # =============================  Return value  =============================
-    # Ici, on ne différencie pas la demi-vie selon Alpha/BetaMinus/etc.,
-    # on renvoie la demi-vie totale de l’isotope (suffisant pour ton modèle).
-    if X in hl_database:
-        hl = hl_database[X]
+    if (X, Transfo) in HL_DB:
+        hl = HL_DB[(X, Transfo)]
     else:
-        # valeur fallback très grande (quasi stable)
-        hl = np.inf
+        print("\n WARNING : No half-life in database for (", X, ",", Transfo, ")")
+        hl = 0.0
 
     return hl
+
+
+# Small test
+if __name__ == "__main__":
+    hl_fp = halfLife("FP", "BetaMinus")
+    hl_xe = halfLife("Xe135", "BetaMinus")
+    print("T1/2(FP)   =", hl_fp, "s")
+    print("T1/2(Xe135) =", hl_xe, "s")
